@@ -1,75 +1,49 @@
-export const COLORS = {
-  primary: '#E2B45A', // Gold accent
-  primaryDark: '#B28D40',
-  secondary: '#9AA3B2', // Cool gray
-  accent: '#D35E50', // Rusty orange
-  
-  success: '#4CAF50',
-  warning: '#FFC107',
-  error: '#F44336',
-  
-  background: '#1F232B',
-  backgroundDark: '#171A20',
-  backgroundLight: '#292F3A',
-  
-  text: '#FFFFFF',
-  textSecondary: '#9AA3B2',
-  textMuted: '#646E82',
-  
-  cardBackground: '#292F3A',
-  divider: 'rgba(255, 255, 255, 0.1)',
-  
-  overlay: 'rgba(23, 26, 32, 0.7)',
-  
-  // Gradient colors
-  gradientStart: '#1F232B',
-  gradientEnd: '#0F1114',
-};
+const tintColorLight = '#2f95dc';
+const tintColorDark = '#fff';
 
-export const SIZES = {
-  // Font sizes
-  xSmall: 10,
-  small: 12,
-  medium: 14,
-  large: 16,
-  xLarge: 18,
-  xxLarge: 24,
-  xxxLarge: 30,
-  
-  // Spacing units (8px system)
-  xs: 4,
-  s: 8,
-  m: 16,
-  l: 24,
-  xl: 32,
-  xxl: 40,
-  
-  // Border radius
-  borderRadiusSmall: 4,
-  borderRadius: 8,
-  borderRadiusLarge: 16,
-  borderRadiusXLarge: 24,
-  
-  // Icon sizes
-  iconSmall: 16,
-  icon: 24,
-  iconLarge: 32,
-};
-
-export const FONTS = {
-  heading: {
-    fontFamily: 'Merriweather-Bold',
+export default {
+  light: {
+    text: '#2D3142',
+    background: '#F9F9F9',
+    tint: tintColorLight,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorLight,
+    card: '#FFFFFF',
+    primary: '#3C4A60',
+    secondary: '#677284',
+    accent: '#B85C38',
+    border: '#E0E0E0',
+    muted: '#A0A0A0',
+    success: '#3E885B',
+    warning: '#D38C22',
+    error: '#BF4342',
+    inputBackground: '#F0F0F0',
+    overlay: 'rgba(0, 0, 0, 0.5)',
+    mentorBubble: '#4A5568',
+    userBubble: '#E2E8F0',
+    mentorText: '#FFFFFF',
+    userText: '#2D3142',
   },
-  subheading: {
-    fontFamily: 'Merriweather-Regular',
-  },
-  body: {
-    fontFamily: 'Inter-Regular',
-  },
-  bodyMedium: {
-    fontFamily: 'Inter-Medium',
-  },
-  bodyBold: {
-    fontFamily: 'Inter-Bold',
+  dark: {
+    text: '#F9F9F9',
+    background: '#14181F',
+    tint: tintColorDark,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorDark,
+    card: '#1C2331',
+    primary: '#4A5D80',
+    secondary: '#8295A3',
+    accent: '#D9795C',
+    border: '#2E3237',
+    muted: '#737373',
+    success: '#3E885B',
+    warning: '#D38C22',
+    error: '#BF4342',
+    inputBackground: '#242931',
+    overlay: 'rgba(0, 0, 0, 0.7)',
+    mentorBubble: '#4A5568',
+    userBubble: '#343C48',
+    mentorText: '#FFFFFF',
+    userText: '#F9F9F9',
   },
 };

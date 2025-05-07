@@ -1,127 +1,155 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, FONTS, SIZES } from '@/constants/Colors';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import { User, Bell, Moon, Download, CircleHelp as HelpCircle, LogOut, ChevronRight } from 'lucide-react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, Switch } from 'react-native';
+import { User, Moon, Download, Bell, BookOpen, MessageCircle, Info, ChevronRight } from 'lucide-react-native';
+import { videos } from '@/data/videos';
+import Colors from '@/constants/Colors';
+import useColorScheme from '@/hooks/useColorScheme';
 
 export default function ProfileScreen() {
-  const [darkMode, setDarkMode] = React.useState(true);
-  const [notifications, setNotifications] = React.useState(true);
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
+  
+  // Calculate progress
+  const totalVideos = videos.length;
+  const completedVideos = videos.filter(v => v.isCompleted).length;
+  const progressPercentage = totalVideos > 0 
+    ? Math.round((completedVideos / totalVideos) * 100) 
+    : 0;
 
-  const toggleSwitch = (setting: 'darkMode' | 'notifications') => {
-    // Provide haptic feedback on iOS/Android
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    
-    if (setting === 'darkMode') {
-      setDarkMode(previous => !previous);
-    } else {
-      setNotifications(previous => !previous);
-    }
-  };
+  // Mock data
+  const userName = "Aspiring Entrepreneur";
+  const isDarkMode = colorScheme === 'dark';
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [offlineEnabled, setOfflineEnabled] = React.useState(false);
+  
+  const menuItems = [
+    {
+      icon: <BookOpen size={20} color={colors.secondary} />,
+      label: 'Learning Progress',
+      value: `${progressPercentage}% complete`,
+      hasChevron: true
+    },
+    {
+      icon: <MessageCircle size={20} color={colors.secondary} />,
+      label: 'Chat History',
+      hasChevron: true
+    },
+    {
+      icon: <Bell size={20} color={colors.secondary} />,
+      label: 'Notifications',
+      isSwitch: true,
+      value: notificationsEnabled,
+      onToggle: () => setNotificationsEnabled(!notificationsEnabled)
+    },
+    {
+      icon: <Download size={20} color={colors.secondary} />,
+      label: 'Offline Access',
+      isSwitch: true,
+      value: offlineEnabled,
+      onToggle: () => setOfflineEnabled(!offlineEnabled)
+    },
+    {
+      icon: <Moon size={20} color={colors.secondary} />,
+      label: 'Dark Mode',
+      isSwitch: true,
+      value: isDarkMode,
+      // Dark mode toggle would be implemented here
+    },
+    {
+      icon: <Info size={20} color={colors.secondary} />,
+      label: 'About',
+      hasChevron: true
+    },
+  ];
 
-  const handleNavigation = (screen: string) => {
-    // Provide haptic feedback on iOS/Android
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    
-    // Navigate to corresponding screen
-    // router.push(`/${screen}`);
-  };
+  const renderMenuItem = (item: any, index: number) => (
+    <Pressable
+      key={index}
+      style={[
+        styles.menuItem,
+        { borderBottomColor: colors.border },
+        index === menuItems.length - 1 && styles.lastMenuItem
+      ]}
+      onPress={() => {
+        if (item.isSwitch) return;
+        // Handle navigation or action
+      }}
+    >
+      <View style={styles.menuItemLeft}>
+        {item.icon}
+        <Text style={[styles.menuItemLabel, { color: colors.text }]}>
+          {item.label}
+        </Text>
+      </View>
+      
+      <View style={styles.menuItemRight}>
+        {item.value && !item.isSwitch && (
+          <Text style={[styles.menuItemValue, { color: colors.secondary }]}>
+            {item.value}
+          </Text>
+        )}
+        
+        {item.isSwitch ? (
+          <Switch
+            value={item.value}
+            onValueChange={item.onToggle}
+            trackColor={{ false: colors.muted, true: colors.accent }}
+            thumbColor="#FFFFFF"
+          />
+        ) : item.hasChevron ? (
+          <ChevronRight size={20} color={colors.secondary} />
+        ) : null}
+      </View>
+    </Pressable>
+  );
 
   return (
-    <LinearGradient 
-      colors={[COLORS.gradientStart, COLORS.gradientEnd]} 
-      style={styles.container}
+    <ScrollView 
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.contentContainer}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
+      <View style={[styles.profileHeader, { backgroundColor: colors.card }]}>
+        <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
+          <User size={40} color="#FFFFFF" />
         </View>
+        <Text style={[styles.userName, { color: colors.text }]}>
+          {userName}
+        </Text>
+        <Text style={[styles.userSubtitle, { color: colors.secondary }]}>
+          Business Student
+        </Text>
         
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.profileSection}>
-            <View style={styles.profileIcon}>
-              <User size={32} color={COLORS.text} />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>Guest User</Text>
-              <Text style={styles.profileEmail}>Create an account to save your progress</Text>
-            </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.accent }]}>
+              {completedVideos}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.secondary }]}>
+              Lessons Completed
+            </Text>
           </View>
           
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Preferences</Text>
-            
-            <View style={styles.settingRow}>
-              <Bell size={22} color={COLORS.textSecondary} />
-              <Text style={styles.settingText}>Notifications</Text>
-              <Switch
-                trackColor={{ false: COLORS.backgroundLight, true: COLORS.primaryDark }}
-                thumbColor={notifications ? COLORS.primary : COLORS.textSecondary}
-                onValueChange={() => toggleSwitch('notifications')}
-                value={notifications}
-              />
-            </View>
-            
-            <View style={styles.settingRow}>
-              <Moon size={22} color={COLORS.textSecondary} />
-              <Text style={styles.settingText}>Dark Mode</Text>
-              <Switch
-                trackColor={{ false: COLORS.backgroundLight, true: COLORS.primaryDark }}
-                thumbColor={darkMode ? COLORS.primary : COLORS.textSecondary}
-                onValueChange={() => toggleSwitch('darkMode')}
-                value={darkMode}
-              />
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.settingRow}
-              onPress={() => handleNavigation('downloads')}
-            >
-              <Download size={22} color={COLORS.textSecondary} />
-              <Text style={styles.settingText}>Offline Content</Text>
-              <ChevronRight size={18} color={COLORS.textSecondary} />
-            </TouchableOpacity>
-          </View>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
           
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Support</Text>
-            
-            <TouchableOpacity 
-              style={styles.settingRow}
-              onPress={() => handleNavigation('help')}
-            >
-              <HelpCircle size={22} color={COLORS.textSecondary} />
-              <Text style={styles.settingText}>Help & FAQ</Text>
-              <ChevronRight size={18} color={COLORS.textSecondary} />
-            </TouchableOpacity>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.accent }]}>
+              {totalVideos - completedVideos}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.secondary }]}>
+              Lessons Remaining
+            </Text>
           </View>
-          
-          <TouchableOpacity 
-            style={styles.logoutButton}
-            onPress={() => {
-              if (Platform.OS !== 'web') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              }
-              // Logout logic here
-            }}
-          >
-            <LogOut size={20} color={COLORS.error} />
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.versionInfo}>
-            <Text style={styles.versionText}>Version 1.0.0</Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </LinearGradient>
+        </View>
+      </View>
+
+      <View style={[styles.menuContainer, { backgroundColor: colors.card }]}>
+        {menuItems.map(renderMenuItem)}
+      </View>
+      
+      <Text style={[styles.appVersion, { color: colors.muted }]}>
+        Version 1.0.0
+      </Text>
+    </ScrollView>
   );
 }
 
@@ -129,103 +157,94 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  profileHeader: {
+    alignItems: 'center',
+    padding: 24,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  userName: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  userSubtitle: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingVertical: 16,
+  },
+  statItem: {
     flex: 1,
+    alignItems: 'center',
   },
-  header: {
-    padding: SIZES.m,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.divider,
+  statValue: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 24,
+    marginBottom: 4,
   },
-  headerTitle: {
-    ...FONTS.heading,
-    fontSize: SIZES.large,
-    color: COLORS.text,
+  statLabel: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 14,
+  },
+  divider: {
+    width: 1,
+    height: '80%',
+    alignSelf: 'center',
+  },
+  menuContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+  },
+  lastMenuItem: {
+    borderBottomWidth: 0,
+  },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemLabel: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  menuItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemValue: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 14,
+    marginRight: 8,
+  },
+  appVersion: {
     textAlign: 'center',
-  },
-  content: {
-    flex: 1,
-    padding: SIZES.m,
-  },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SIZES.xl,
-    backgroundColor: COLORS.cardBackground,
-    padding: SIZES.m,
-    borderRadius: SIZES.borderRadius,
-  },
-  profileIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.backgroundLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SIZES.m,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    ...FONTS.bodyBold,
-    fontSize: SIZES.large,
-    color: COLORS.text,
-    marginBottom: SIZES.xs,
-  },
-  profileEmail: {
-    ...FONTS.body,
-    fontSize: SIZES.medium,
-    color: COLORS.textSecondary,
-  },
-  section: {
-    marginBottom: SIZES.xl,
-  },
-  sectionTitle: {
-    ...FONTS.bodyBold,
-    fontSize: SIZES.medium,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.s,
-    paddingHorizontal: SIZES.xs,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SIZES.m,
-    paddingHorizontal: SIZES.m,
-    backgroundColor: COLORS.cardBackground,
-    marginBottom: StyleSheet.hairlineWidth,
-    borderRadius: SIZES.borderRadius,
-  },
-  settingText: {
-    ...FONTS.body,
-    fontSize: SIZES.medium,
-    color: COLORS.text,
-    flex: 1,
-    marginLeft: SIZES.m,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SIZES.m,
-    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-    borderRadius: SIZES.borderRadius,
-    marginBottom: SIZES.xl,
-  },
-  logoutText: {
-    ...FONTS.bodyMedium,
-    fontSize: SIZES.medium,
-    color: COLORS.error,
-    marginLeft: SIZES.s,
-  },
-  versionInfo: {
-    alignItems: 'center',
-    marginBottom: 100, // Extra space for tab bar
-  },
-  versionText: {
-    ...FONTS.body,
-    fontSize: SIZES.small,
-    color: COLORS.textMuted,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 12,
+    marginTop: 24,
   },
 });
