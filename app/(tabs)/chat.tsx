@@ -1,176 +1,109 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList,
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Image
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, FONTS, SIZES } from '@/constants/Colors';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUp } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
-
-// Message type definition
-interface Message {
-  id: string;
-  text: string;
-  isMentor: boolean;
-  timestamp: Date;
-}
-
-// Sample initial messages
-const initialMessages: Message[] = [
-  {
-    id: '1',
-    text: "So, you're looking for some business advice, eh? What's on your mind?",
-    isMentor: true,
-    timestamp: new Date(Date.now() - 60000),
-  },
-];
-
-// Sample responses based on keywords
-const mentorResponses: Record<string, string> = {
-  'money': "Listen here, kid. Money ain't the problem. It's your mindset. You don't need a fortune, just enough to get started. Bootstrap, barter, borrow if you must, but don't let lack of cash be your excuse. The hungrier you are, the more creative you'll get. That's business 101.",
-  'idea': "Ideas are a dime a dozen. Execution is everything. Don't waste time perfecting your idea in a vacuum. Get it out there, test it, fail fast, learn faster. A mediocre idea with brilliant execution beats a brilliant idea with mediocre execution every single time.",
-  'customer': "Your first customers are gold. Treat 'em like royalty. Don't chase numbers, chase relationships. One satisfied customer who sings your praises is worth more than a thousand lukewarm ones. Focus on solving real problems, and word will spread.",
-  'marketing': "Forget fancy marketing if you're just starting out. Talk to people. Solve problems. The best marketing is a product so good people can't shut up about it. Everything else is just noise until you've got that right.",
-};
+import { MessageCircle } from 'lucide-react-native';
+import ChatBubble from '@/components/ChatBubble';
+import ChatInput from '@/components/ChatInput';
+import MentorAvatar from '@/components/MentorAvatar';
+import useChat from '@/hooks/useChat';
+import Colors from '@/constants/Colors';
+import useColorScheme from '@/hooks/useColorScheme';
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [inputText, setInputText] = useState('');
-  const flatListRef = useRef<FlatList>(null);
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  // For general chat, we're using 'general' as the videoId
+  const { messages, sendMessage, isThinking } = useChat('general');
 
-  const handleSend = () => {
-    if (inputText.trim() === '') return;
+  const handleSend = (message: string) => {
+    sendMessage(message);
     
-    // Provide haptic feedback on iOS/Android
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText,
-      isMentor: false,
-      timestamp: new Date(),
-    };
-    
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    setInputText('');
-    
-    // Simulate typing indicator by waiting
+    // Scroll to bottom after sending
     setTimeout(() => {
-      // Generate mentor response based on keywords or default
-      let mentorReply = "Hmm, interesting question. Let me think on that for a moment... The key is to stay focused and keep moving forward. What specific challenge are you facing?";
-      
-      // Check for keywords in user input
-      const lowerInput = inputText.toLowerCase();
-      Object.keys(mentorResponses).forEach(keyword => {
-        if (lowerInput.includes(keyword)) {
-          mentorReply = mentorResponses[keyword];
-        }
-      });
-      
-      // Add mentor response
-      const mentorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: mentorReply,
-        isMentor: true,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prevMessages => [...prevMessages, mentorMessage]);
-      
-      // Scroll to the bottom
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }, 1500);
-    
-    // Scroll to bottom after user message
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
+      scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[
-      styles.messageBubble,
-      item.isMentor ? styles.mentorBubble : styles.userBubble
-    ]}>
-      {item.isMentor && (
-        <Image 
-          source={require('@/assets/images/mentor.jpg')}
-          style={styles.mentorAvatar}
-        />
-      )}
-      <View style={[
-        styles.messageContent,
-        item.isMentor ? styles.mentorContent : styles.userContent
-      ]}>
-        <Text style={styles.messageText}>{item.text}</Text>
-        <Text style={styles.timestamp}>
-          {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Text>
-      </View>
-    </View>
-  );
-
   return (
-    <LinearGradient 
-      colors={[COLORS.gradientStart, COLORS.gradientEnd]} 
-      style={styles.container}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Ask The Mentor</Text>
-        </View>
-        
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.keyboardAvoid}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.messageList}
-            showsVerticalScrollIndicator={false}
-          />
-          
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ask a question..."
-              placeholderTextColor={COLORS.textMuted}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-            />
-            <TouchableOpacity 
-              style={[
-                styles.sendButton,
-                !inputText.trim() && styles.sendButtonDisabled
-              ]}
-              onPress={handleSend}
-              disabled={!inputText.trim()}
-            >
-              <ArrowUp size={20} color={!inputText.trim() ? COLORS.textMuted : COLORS.backgroundDark} />
-            </TouchableOpacity>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        {messages.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <MentorAvatar size={120} />
+            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
+              Ask Your Mentor
+            </Text>
+            <Text style={[styles.emptyStateDescription, { color: colors.secondary }]}>
+              Your mentor is ready to answer your business questions. Ask anything about starting or growing a business with limited resources.
+            </Text>
+            <View style={[styles.exampleContainer, { backgroundColor: colors.card }]}>
+              <Text style={[styles.exampleTitle, { color: colors.text }]}>
+                Example Questions:
+              </Text>
+              <View style={styles.exampleBubble}>
+                <MessageCircle size={16} color={colors.accent} />
+                <Text style={[styles.exampleText, { color: colors.text }]}>
+                  How do I find my first customers?
+                </Text>
+              </View>
+              <View style={styles.exampleBubble}>
+                <MessageCircle size={16} color={colors.accent} />
+                <Text style={[styles.exampleText, { color: colors.text }]}>
+                  What business can I start with less than $100?
+                </Text>
+              </View>
+              <View style={styles.exampleBubble}>
+                <MessageCircle size={16} color={colors.accent} />
+                <Text style={[styles.exampleText, { color: colors.text }]}>
+                  How do I compete with bigger companies?
+                </Text>
+              </View>
+            </View>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+        ) : (
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.chatContainer}
+            contentContainerStyle={styles.chatContent}
+            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+          >
+            {messages.map((message, index) => (
+              <ChatBubble
+                key={message.id}
+                message={message.text}
+                type={message.type}
+                showAvatar={index === 0 || 
+                  (messages[index - 1] && messages[index - 1].type !== 'mentor')}
+              />
+            ))}
+            
+            {isThinking && (
+              <View style={styles.thinkingContainer}>
+                <MentorAvatar size={36} showBorder={false} />
+                <View style={[styles.thinkingBubble, { backgroundColor: colors.mentorBubble }]}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                </View>
+              </View>
+            )}
+          </ScrollView>
+        )}
+
+        <ChatInput onSend={handleSend} />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -178,101 +111,64 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
+  emptyStateContainer: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
   },
-  header: {
-    padding: SIZES.m,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.divider,
+  emptyStateTitle: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 24,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  headerTitle: {
-    ...FONTS.heading,
-    fontSize: SIZES.large,
-    color: COLORS.text,
+  emptyStateDescription: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 16,
     textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
   },
-  keyboardAvoid: {
+  exampleContainer: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  exampleTitle: {
+    fontFamily: 'SpaceGrotesk-Medium',
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  exampleBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  exampleText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 15,
+    marginLeft: 8,
+  },
+  chatContainer: {
     flex: 1,
   },
-  messageList: {
-    paddingHorizontal: SIZES.m,
-    paddingTop: SIZES.m,
-    paddingBottom: SIZES.xl,
+  chatContent: {
+    paddingVertical: 16,
   },
-  messageBubble: {
-    marginBottom: SIZES.m,
-    maxWidth: '80%',
+  thinkingContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    marginHorizontal: 16,
+    marginVertical: 8,
   },
-  mentorBubble: {
-    alignSelf: 'flex-start',
-  },
-  userBubble: {
-    alignSelf: 'flex-end',
-    flexDirection: 'row-reverse',
-  },
-  mentorAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: SIZES.xs,
-  },
-  messageContent: {
-    borderRadius: SIZES.borderRadius,
-    padding: SIZES.m,
-    paddingBottom: SIZES.s,
-  },
-  mentorContent: {
-    backgroundColor: COLORS.cardBackground,
-  },
-  userContent: {
-    backgroundColor: COLORS.primary,
-  },
-  messageText: {
-    ...FONTS.body,
-    fontSize: SIZES.medium,
-    color: COLORS.text,
-    lineHeight: 20,
-  },
-  timestamp: {
-    ...FONTS.body,
-    fontSize: SIZES.xSmall,
-    color: COLORS.textMuted,
-    marginTop: SIZES.xs,
-    alignSelf: 'flex-end',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: SIZES.m,
-    paddingVertical: SIZES.s,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: COLORS.divider,
-    backgroundColor: COLORS.backgroundDark,
-  },
-  input: {
-    flex: 1,
-    ...FONTS.body,
-    fontSize: SIZES.medium,
-    color: COLORS.text,
-    backgroundColor: COLORS.backgroundLight,
-    borderRadius: SIZES.borderRadiusLarge,
-    paddingHorizontal: SIZES.m,
-    paddingVertical: SIZES.s,
-    maxHeight: 100,
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
+  thinkingBubble: {
+    marginLeft: 8,
+    padding: 12,
+    borderRadius: 16,
+    borderTopLeftRadius: 4,
+    minWidth: 60,
     alignItems: 'center',
-    marginLeft: SIZES.s,
-    alignSelf: 'flex-end',
-  },
-  sendButtonDisabled: {
-    backgroundColor: COLORS.backgroundLight,
   },
 });

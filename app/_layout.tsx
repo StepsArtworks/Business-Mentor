@@ -1,44 +1,49 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Merriweather_400Regular, Merriweather_700Bold } from '@expo-google-fonts/merriweather';
-import { SplashScreen } from 'expo-router';
-
-// Prevent the splash screen from auto-hiding before asset loading
-SplashScreen.preventAutoHideAsync();
+import useCachedResources from '@/hooks/useCachedResources';
+import useColorScheme from '@/hooks/useColorScheme';
+import Colors from '@/constants/Colors';
 
 export default function RootLayout() {
   useFrameworkReady();
+  const { isLoadingComplete, fontsLoaded } = useCachedResources();
+  const colorScheme = useColorScheme();
+  const [appIsReady, setAppIsReady] = useState(false);
 
-  const [fontsLoaded, fontError] = useFonts({
-    'Inter-Regular': Inter_400Regular,
-    'Inter-Medium': Inter_500Medium,
-    'Inter-Bold': Inter_700Bold,
-    'Merriweather-Regular': Merriweather_400Regular,
-    'Merriweather-Bold': Merriweather_700Bold,
-  });
-
-  // Use useEffect to hide the splash screen once fonts are loaded
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+    if (isLoadingComplete && fontsLoaded) {
+      setAppIsReady(true);
     }
-  }, [fontsLoaded, fontError]);
+  }, [isLoadingComplete, fontsLoaded]);
 
-  // Fonts not loaded, keep splash screen
-  if (!fontsLoaded && !fontError) {
+  if (!appIsReady) {
     return null;
   }
 
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: Colors[colorScheme].background },
+      }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen name="category/[id]" options={{ 
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }} />
+        <Stack.Screen name="topic/[categoryId]/[topicId]" options={{ 
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }} />
+        <Stack.Screen name="video/[id]" options={{ 
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }} />
+        <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </>
   );
 }
