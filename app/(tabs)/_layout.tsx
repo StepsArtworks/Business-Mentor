@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Chrome as Home, SquarePlay as PlaySquare, MessageCircle, User } from 'lucide-react-native';
+import { Chrome as Home, MessageCircle, User } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import useColorScheme from '@/hooks/useColorScheme';
 
@@ -42,17 +42,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Learn',
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
           headerTitle: 'Business Mentor',
-        }}
-      />
-      <Tabs.Screen
-        name="videos"
-        options={{
-          title: 'Videos',
-          tabBarIcon: ({ color, size }) => <PlaySquare color={color} size={size} />,
-          headerTitle: 'Mentor Videos',
         }}
       />
       <Tabs.Screen

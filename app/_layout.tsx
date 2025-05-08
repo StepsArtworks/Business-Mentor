@@ -29,6 +29,14 @@ export default function RootLayout() {
         contentStyle: { backgroundColor: Colors[colorScheme].background },
       }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="category/[id]" options={{ 
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }} />
+        <Stack.Screen name="topic/[categoryId]/[topicId]" options={{ 
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }} />
         <Stack.Screen name="video/[id]" options={{ 
           presentation: 'card',
           animation: 'slide_from_right',

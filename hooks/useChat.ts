@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { getResponseForQuestion } from '@/data/mentorResponses';
 import { QuestionHistoryItem } from '@/types/videoData';
 import debounce from 'lodash.debounce';
@@ -7,10 +7,21 @@ export default function useChat(videoId: string) {
   const [messages, setMessages] = useState<Array<{id: string, text: string, type: 'user' | 'mentor'}>>([]);
   const [history, setHistory] = useState<QuestionHistoryItem[]>([]);
   const [isThinking, setIsThinking] = useState(false);
+  const isMounted = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      debouncedMentorResponse.cancel();
+    };
+  }, []);
 
   // Simulate mentor thinking with a slight delay
   const debouncedMentorResponse = useCallback(
     debounce((question: string, videoId: string) => {
+      if (!isMounted.current) return;
+
       const answer = getResponseForQuestion(question, videoId);
       const responseMsg = {
         id: Date.now().toString(),
@@ -36,6 +47,8 @@ export default function useChat(videoId: string) {
   );
 
   const sendMessage = useCallback((message: string) => {
+    if (!isMounted.current) return;
+
     // Add user message immediately
     const userMsg = {
       id: Date.now().toString(),
@@ -53,6 +66,7 @@ export default function useChat(videoId: string) {
   }, [videoId, debouncedMentorResponse]);
 
   const clearChat = useCallback(() => {
+    if (!isMounted.current) return;
     setMessages([]);
   }, []);
 

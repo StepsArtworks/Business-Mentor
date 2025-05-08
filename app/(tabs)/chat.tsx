@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   thinkingContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginHorizontal: a16,
+    marginHorizontal: 16,
     marginVertical: 8,
   },
   thinkingBubble: {
